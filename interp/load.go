@@ -21,6 +21,7 @@ var supportedRequires = map[string]struct{}{
 	"imap4flags": {},
 	"variables":  {},
 	"relational": {},
+	"body":       {},
 }
 
 var (
@@ -78,6 +79,8 @@ func init() {
 		"size":     loadSizeTest,
 		// RFC 5229 (variables extension)
 		"string": loadStringTest,
+		// RFC 5178 (body extension)
+		"body": loadBodyTest,
 		// vnd.dovecot.testsuite
 		"test_script_compile": loadDovecotCompile, // compile script (to test for compile errors)
 		"test_script_run":     loadDovecotRun,     // run script (to test for run-time errors)
