@@ -3,6 +3,7 @@ package interp
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/fs"
 	"strings"
 
@@ -38,6 +39,15 @@ type Message interface {
 	*/
 	HeaderGet(key string) ([]string, error)
 	MessageSize() int
+}
+
+type ExtendedMessage interface {
+	Message
+	/*
+		Returns io.Reader containing raw message byte stream.
+		Required by body interacting extensions, eg: RFC5173 Body Extension
+	*/
+	RawMessage() (io.Reader, error)
 }
 
 type RuntimeData struct {
