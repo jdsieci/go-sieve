@@ -31,7 +31,7 @@ func loadBodyTest(s *Script, test parser.Test) (Test, error) {
 			},
 			"text": {
 				MatchBool: func() {
-					loaded.Text = true
+					loaded.Content = "text"
 				},
 			},
 		},

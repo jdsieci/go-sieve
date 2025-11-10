@@ -5,7 +5,6 @@ import "context"
 type BodyTest struct {
 	matcherTest
 	Raw     bool
-	Text    bool
 	Content string
 }
 
