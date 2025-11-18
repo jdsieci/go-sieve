@@ -2,6 +2,7 @@ package interp
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 )
 
@@ -149,7 +150,7 @@ func (t *matcherTest) countMatches(d *RuntimeData, value uint64) bool {
 	if !t.isCount() {
 		panic("countMatches can be called only with MatchCount matcher")
 	}
-	
+
 	for _, k := range t.key {
 		kNum, err := strconv.ParseUint(expandVars(d, k), 10, 64)
 		if err != nil {
@@ -177,6 +178,28 @@ func (t *matcherTest) tryMatch(d *RuntimeData, source string) (bool, error) {
 			key = expandVars(d, key)
 			ok, matches, err = testString(t.comparator, t.match, t.relational, source, expandVars(d, key))
 		}
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			if t.match == MatchMatches {
+				d.MatchVariables = matches
+			}
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (t *matcherTest) tryMatchStream(d *RuntimeData, source io.Reader) (bool, error) {
+	for _, key := range t.key {
+		var (
+			ok      bool
+			matches []string
+			err     error
+		)
+		key = expandVars(d, key)
+		ok, matches, err = testStream(t.comparator, t.match, t.relational, source, expandVars(d, key))
 		if err != nil {
 			return false, err
 		}
