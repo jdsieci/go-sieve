@@ -3,6 +3,8 @@ package interp
 import (
 	"bufio"
 	"io"
+	"strconv"
+	"unicode"
 )
 
 func testStream(comparator Comparator, match Match, rel Relational, stream io.Reader, key string) (bool, []string, error) {
@@ -16,14 +18,30 @@ func testStream(comparator Comparator, match Match, rel Relational, stream io.Re
 		case MatchMatches:
 		case MatchValue:
 		case MatchCount:
+			panic("testStream should not be used with MatchCount")
 		}
 	case ComparatorASCIINumeric:
 		switch match {
 		case MatchContains:
+			return false, nil, ErrComparatorMatchUnsupported
 		case MatchIs:
+			lhsNum, err := streamNumericValue(stream)
+			if err != nil {
+				return false, nil, err
+			}
+			rhsNum := numericValue(key)
+			return RelEqual.CompareNumericValue(lhsNum, rhsNum), nil, nil
 		case MatchMatches:
+			return false, nil, ErrComparatorMatchUnsupported
 		case MatchValue:
+			lhsNum, err := streamNumericValue(stream)
+			if err != nil {
+				return false, nil, err
+			}
+			rhsNum := numericValue(key)
+			return RelEqual.CompareNumericValue(lhsNum, rhsNum), nil, nil
 		case MatchCount:
+			panic("testStream should not be used with MatchCount")
 		}
 	case ComparatorASCIICaseMap:
 		switch match {
@@ -32,6 +50,7 @@ func testStream(comparator Comparator, match Match, rel Relational, stream io.Re
 		case MatchMatches:
 		case MatchValue:
 		case MatchCount:
+			panic("testStream should not be used with MatchCount")
 		}
 	case ComparatorUnicodeCaseMap:
 		switch match {
@@ -40,6 +59,7 @@ func testStream(comparator Comparator, match Match, rel Relational, stream io.Re
 		case MatchMatches:
 		case MatchValue:
 		case MatchCount:
+			panic("testStream should not be used with MatchCount")
 		}
 	}
 	return false, nil, nil
@@ -70,4 +90,26 @@ func streamContains(stream io.Reader, key []byte) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func streamNumericValue(stream io.Reader) (*uint64, error) {
+	bufStream := bufio.NewReader(stream)
+	runes := []rune{}
+	for {
+		r, _, err := bufStream.ReadRune()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		if !unicode.IsDigit(r) {
+			break
+		}
+		runes = append(runes, r)
+	}
+	digit, err := strconv.ParseUint(string(runes), 10, 64)
+	if err != nil {
+		return nil, nil
+	}
+	return &digit, nil
 }
